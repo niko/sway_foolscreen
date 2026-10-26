@@ -9,7 +9,7 @@ Fullscreen and floating for [sway](https://swaywm.org) that keep the status bar 
 
 Toggling again puts the window back into its original slot in the tiling layout.
 
-In `float` mode the window is floated, centered and it's place in the tiles preserved. With transparent placeholder you can see the background and it looks like a gap in the tiles.
+In `float` mode the window is floated, centered and its place in the tiles preserved. With a transparent placeholder you can see the background and it looks like a gap in the tiles.
 I like it very much with 98% width and height. For demo purposes I used 90% width and height here. `float` (with `-s 90 -c 00000000`):
 
 ![foolscreen float](foolscreen_float.png)
