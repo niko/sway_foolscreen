@@ -1,0 +1,71 @@
+#!/bin/sh
+# Toggle the focused sway window into a mode; a placeholder window keeps its slot in the layout.
+# Needs the for_window rules for foolscreen-fullscreen and foolscreen-float- (see README.md).
+# Usage: foolscreen [-c RRGGBB|AARRGGBB] fullscreen|float
+#   fullscreen: move to a dedicated "fullscreen" workspace
+#   float:      float at 98%
+#   -c:         placeholder color, 00000000 is transparent
+bin=$(dirname "$(readlink -f "$0")")
+usage() { echo "usage: foolscreen [-c RRGGBB|AARRGGBB] fullscreen|float" >&2; exit 1; }
+has_mark() { swaymsg -t get_marks | jq -e --arg m "$1" 'index($m)' >/dev/null; }
+
+color=
+while getopts c: opt; do
+    case $opt in
+    c) color=$OPTARG ;;
+    *) usage ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+# start a placeholder window and wait until sway has mapped it
+placeholder() {
+    "$bin/foolscreen-placeholder" ${color:+-c "$color"} "$1" "$2" &
+    for i in $(seq 500); do swaymsg -t get_tree | grep -q "\"app_id\": \"$1\"" && break; sleep 0.01; done
+}
+
+case $1 in
+fullscreen)
+    state="$XDG_RUNTIME_DIR/foolscreen-origin"
+    current=$(swaymsg -t get_workspaces | jq -r '.[] | select(.focused).name')
+    if [ "$current" = fullscreen ]; then
+        origin=$(cat "$state")
+        if ! has_mark _fs_win; then
+            # window was closed: drop the placeholder
+            swaymsg "[con_mark=\"^_fs_ph\$\"] kill; workspace \"$origin\""
+        elif has_mark _fs_ph; then
+            swaymsg '[con_mark="^_fs_win$"] border normal, swap container with mark _fs_ph; [con_mark="^_fs_ph$"] kill; [con_mark="^_fs_win$"] focus; unmark _fs_win'
+        else
+            # placeholder was closed: fall back to the origin workspace
+            swaymsg "[con_mark=\"^_fs_win\$\"] border normal, move container to workspace \"$origin\"; unmark _fs_win; workspace \"$origin\""
+        fi
+    else
+        echo "$current" > "$state"
+        swaymsg 'mark --add _fs_win'
+        placeholder foolscreen-fullscreen "fullscreen placeholder"
+        swaymsg '[con_mark="^_fs_win$"] border none, swap container with mark _fs_ph; [con_mark="^_fs_win$"] focus'
+    fi
+    ;;
+float)
+    focused=$(swaymsg -t get_tree | jq -c '.. | objects | select(.focused? == true) | {id, type}')
+    id=$(echo "$focused" | jq .id)
+    ph="_fl_ph_$id"
+    case $(echo "$focused" | jq -r .type) in
+    floating_con)
+        if has_mark "$ph"; then
+            swaymsg "[con_id=$id] swap container with mark $ph; [con_mark=\"^$ph\$\"] kill; [con_id=$id] focus"
+        else
+            # placeholder was closed: plain tiling
+            swaymsg "[con_id=$id] floating disable"
+        fi
+        ;;
+    con)
+        placeholder "foolscreen-float-$id" "float placeholder"
+        swaymsg "[app_id=\"^foolscreen-float-$id\$\"] mark $ph, resize set 98 ppt 98 ppt, move position center; [con_id=$id] swap container with mark $ph; [con_id=$id] focus"
+        ;;
+    esac
+    ;;
+*)
+    usage
+    ;;
+esac
