@@ -1,18 +1,26 @@
 #!/bin/sh
 # Toggle the focused sway window into a mode; a placeholder window keeps its slot in the layout.
 # Needs the for_window rules for foolscreen-fullscreen and foolscreen-float- (see README.md).
-# Usage: foolscreen [-c RRGGBB|AARRGGBB] fullscreen|float
+# Usage: foolscreen [-c RRGGBB|AARRGGBB] [-s PERCENT] fullscreen|float
 #   fullscreen: move to a dedicated "fullscreen" workspace
-#   float:      float at 98%
+#   float:      float at PERCENT of the workspace (default 98)
 #   -c:         placeholder color, 00000000 is transparent
+#   -s:         float size in percent, clamped to 20-100
 bin=$(dirname "$(readlink -f "$0")")
-usage() { echo "usage: foolscreen [-c RRGGBB|AARRGGBB] fullscreen|float" >&2; exit 1; }
+usage() { echo "usage: foolscreen [-c RRGGBB|AARRGGBB] [-s PERCENT] fullscreen|float" >&2; exit 1; }
 has_mark() { swaymsg -t get_marks | jq -e --arg m "$1" 'index($m)' >/dev/null; }
 
 color=
-while getopts c: opt; do
+size=98
+while getopts c:s: opt; do
     case $opt in
     c) color=$OPTARG ;;
+    s)
+        case $OPTARG in ''|*[!0-9]*) usage ;; esac
+        size=$OPTARG
+        [ "$size" -lt 20 ] && size=20
+        [ "$size" -gt 100 ] && size=100
+        ;;
     *) usage ;;
     esac
 done
@@ -61,7 +69,7 @@ float)
         ;;
     con)
         placeholder "foolscreen-float-$id" "float placeholder"
-        swaymsg "[app_id=\"^foolscreen-float-$id\$\"] mark $ph, resize set 98 ppt 98 ppt, move position center; [con_id=$id] swap container with mark $ph; [con_id=$id] focus"
+        swaymsg "[app_id=\"^foolscreen-float-$id\$\"] mark $ph, resize set $size ppt $size ppt, move position center; [con_id=$id] swap container with mark $ph; [con_id=$id] focus"
         ;;
     esac
     ;;

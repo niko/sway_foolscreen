@@ -5,15 +5,17 @@ Fullscreen and floating for [sway](https://swaywm.org) that keep the status bar 
 `foolscreen` toggles the focused window into one of two modes:
 
 - **`fullscreen`**: moves the window to a dedicated workspace named `fullscreen`, without a border. It fills everything except the bar.
-- **`float`**: floats the window at 98% of the workspace, centered.
+- **`float`**: floats the window at 98% of the workspace (`-s` to change), centered.
 
 Toggling again puts the window back into its original slot in the tiling layout.
 
 ```
-foolscreen [-c RRGGBB|AARRGGBB] fullscreen|float
+foolscreen [-c RRGGBB|AARRGGBB] [-s PERCENT] fullscreen|float
 ```
 
 `-c` sets the placeholder color (default `202020`). With alpha, `00000000` is fully transparent and `80ff0000` is half-transparent red.
+
+`-s` sets the size of the floating window in percent of the workspace (default 98). Values are clamped to 20–100.
 
 ## How it works
 
