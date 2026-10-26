@@ -90,3 +90,7 @@ It refuses to run while a window is on the `fullscreen` workspace. Don't touch t
 - **Window closed in `float` mode:** the placeholder stays. Close it yourself.
 - **Border:** going back from `fullscreen` sets `border normal`. A different previous border isn't restored.
 - **Origin workspace:** stored in `$XDG_RUNTIME_DIR/foolscreen-origin`; only the `fullscreen` fallback uses it.
+
+## License
+
+[WTFPL](http://www.wtfpl.net/), see `LICENSE`.
