@@ -9,6 +9,14 @@ Fullscreen and floating for [sway](https://swaywm.org) that keep the status bar 
 
 Toggling again puts the window back into its original slot in the tiling layout.
 
+`float` (with `-s 90 -c 00000000`):
+
+![foolscreen float](foolscreen_float.png)
+
+`fullscreen`:
+
+![foolscreen fullscreen](foolscreen_fullscreen.png)
+
 ```
 foolscreen [-c RRGGBB|AARRGGBB] [-s PERCENT] fullscreen|float
 ```
